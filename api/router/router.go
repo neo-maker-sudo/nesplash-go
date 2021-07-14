@@ -13,6 +13,7 @@ func InitRouter() *gin.Engine {
 	router.LoadHTMLGlob("templates/*.html")
 	store := cookie.NewStore([]byte("secretkey"))
 	router.Use(sessions.Sessions("sessionId", store))
+	category := controller.New()
 	v1 := router.Group("/api")
 	{
 		v1.GET("/photos", controller.HomePhotos)
@@ -27,16 +28,39 @@ func InitRouter() *gin.Engine {
 
 	v2 := router.Group("/architecture/api")
 	{
-		v2.GET("/photos", controller.ArchitecturePhotos)
-		v2.GET("/videos", controller.ArchitectureVideos)
-		v2.GET("/contributor", controller.ArchitectureContributor)
+		v2.GET("/photos", controller.CategoryPhotos(category.Architecture))
+		v2.GET("/videos", controller.CategoryVideos(category.Architecture))
+		v2.GET("/contributor", controller.CategoryContributor(category.Architecture))
 	}
-
 	v3 := router.Group("/athletics/api")
 	{
-		v3.GET("/photos", controller.AthleticsPhotos)
-		v3.GET("/videos", controller.AthleticsVideos)
-		v3.GET("/contributor", controller.AthleticsContributor)
+		v3.GET("/photos", controller.CategoryPhotos(category.Athletics))
+		v3.GET("/videos", controller.CategoryVideos(category.Athletics))
+		v3.GET("/contributor", controller.CategoryContributor(category.Athletics))
+	}
+	v4 := router.Group("/foodie/api")
+	{
+		v4.GET("/photos", controller.CategoryPhotos(category.Foodie))
+		v4.GET("/videos", controller.CategoryVideos(category.Foodie))
+		v4.GET("/contributor", controller.CategoryContributor(category.Foodie))
+	}
+	v5 := router.Group("/nature/api")
+	{
+		v5.GET("/photos", controller.CategoryPhotos(category.Nature))
+		v5.GET("/videos", controller.CategoryVideos(category.Nature))
+		v5.GET("/contributor", controller.CategoryContributor(category.Nature))
+	}
+	v6 := router.Group("/people/api")
+	{
+		v6.GET("/photos", controller.CategoryPhotos(category.People))
+		v6.GET("/videos", controller.CategoryVideos(category.People))
+		v6.GET("/contributor", controller.CategoryContributor(category.People))
+	}
+	v7 := router.Group("/travel/api")
+	{
+		v7.GET("/photos", controller.CategoryPhotos(category.Travel))
+		v7.GET("/videos", controller.CategoryVideos(category.Travel))
+		v7.GET("/contributor", controller.CategoryContributor(category.Travel))
 	}
 	return router
 }

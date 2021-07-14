@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	UserName string = "root"
-	Password string = "hap62712"
+	UserName string = "neo"
+	Password string = "neoneo"
 	Addr     string = "127.0.0.1"
 	Port     int = 3306
 	Database string = "nesplash"
