@@ -7,16 +7,16 @@ type User struct {
 	Email string `gorm:"type:varchar(50) NOT NULL;unique" json:"email"`
 	Bio string `gorm:"type:text" json:"bio"`
 	Location string `gorm:"type:varchar(50)" json:"location"`
-	ProfileImage string `gorm:"type:varchar(255) NOT NULL DEFAULT https://dkn8b9qqzonkk.cloudfront.net/profile_pics/default.jpg" json:"profile_image"`
-	TotalCollections int `gorm:"type:int DEFAULT 0" json:"total_collections"`
-	TotalPhotos int	`gorm:"type:int DEFAULT 0" json:"total_photos"`
+	ProfileImage string `gorm:"type:varchar(255) NOT NULL" json:"profile_image"`
+	TotalCollections int `gorm:"type:int DEFAULT:0" json:"total_collections"`
+	TotalPhotos int	`gorm:"type:int DEFAULT:0" json:"total_photos"`
 	Link string `gorm:"type:varchar(255)" json:"link"`
-	LockStatus bool `gorm:"type:bool DEFAULT False" json:"lock_status"`
-	Confirmed bool `gorm:"type:bool DEFAULT False" json:"confirmed"`
+	LockStatus bool `gorm:"type:bool DEFAULT:False" json:"lock_status"`
+	Confirmed bool `gorm:"type:bool DEFAULT:False" json:"confirmed"`
 	RoleId int `gorm:"foreignKey:Id"`
 	MethodId int `gorm:"foreignKey:Id" json:"-"`
-	//Methods []Method
-	//Photos []Photo `gorm:"constraint:OnUpdate:CASCADE, OnDelete:SET NULL"`
+	Method Method `gorm:"foreignKey:MethodId"`
+	//Photos Photo `gorm:"constraint:OnUpdate:CASCADE, OnDelete:SET NULL"`
 	//Collections []Collection `gorm:"constraint:OnUpdate:CASCADE, OnDelete:SET NULL"`
 	//Following []Follow `gorm:"foreignKey:Follow.followerId, constraint:OnUpdate:CASCADE, OnDelete:SET NULL"`
 	//Followers []Follow `gorm:"foreignKey:Follow.followedId, constraint:OnUpdate:CASCADE, OnDelete:SET NULL"`
@@ -52,8 +52,8 @@ type Permission struct {
 }
 
 type Method struct {
-	Id int
-	Name string `gorm:"type:varchar(20) NOT NULL"`
+	Id int `json:"-"`
+	Name string `gorm:"type:varchar(20) NOT NULL" json:"user_method"`
 	users []User `gorm:"constraint:OnUpdate:CASCADE, OnDelete:SET NULL"`
 }
 

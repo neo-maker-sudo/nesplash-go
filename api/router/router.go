@@ -24,6 +24,16 @@ func InitRouter() *gin.Engine {
 		v1.POST("/user", controller.Member)
 		v1.PATCH("/user", controller.Member)
 		v1.DELETE("/user", controller.Member)
+		v1.GET("/public/:userId", controller.PublicPageApi)
+		v1.GET("/account/data", controller.PersonDataApi)
+	}
+
+	apiUser := router.Group("/api/user")
+	{
+		apiUser.POST("/change-bio", controller.ChangeBio)
+		apiUser.POST("/change-username", controller.ChangeUsername)
+		apiUser.POST("/change-location", controller.ChangeLocation)
+		apiUser.DELETE("/delete-account", controller.DeleteAccount)
 	}
 
 	v2 := router.Group("/architecture/api")

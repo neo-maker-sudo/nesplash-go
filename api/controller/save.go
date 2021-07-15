@@ -13,3 +13,4 @@ type Category struct {
 func New() *Category {
 	return &Category{1,2,3,4,5,6}
 }
+
