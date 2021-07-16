@@ -31,9 +31,14 @@ func InitRouter() *gin.Engine {
 	apiUser := router.Group("/api/user")
 	{
 		apiUser.POST("/change-bio", controller.ChangeBio)
+		apiUser.POST("/change-password", controller.ChangePassword)
 		apiUser.POST("/change-username", controller.ChangeUsername)
 		apiUser.POST("/change-location", controller.ChangeLocation)
 		apiUser.DELETE("/delete-account", controller.DeleteAccount)
+		apiUser.POST("/upload-profile-image", controller.UploadProfileImage)
+		apiUser.POST("/upload-public-image", controller.UploadPublicImage)
+		apiUser.POST("/delete-public-image", controller.DeletePublicImage)
+		apiUser.GET("/personal-photos", controller.PersonalPhotoId)
 	}
 
 	v2 := router.Group("/architecture/api")

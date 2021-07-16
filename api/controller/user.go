@@ -1,18 +1,22 @@
 package controller
 
 import (
+	"fmt"
 	"gin/api/model"
+	"gin/api/util"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strconv"
 )
 
 type UserData struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+	ConfirmPassword string `json:"confirm_password"`
 	Email string `json:"email"`
 	Bio string `json:"bio"`
 	Location string `json:"location"`
@@ -32,13 +36,13 @@ func Member(c *gin.Context){
 			return 
 		}
 		if err := db.Where("email = ?", json.Email).First(&user).Error; err != nil {
-			c.JSON(400, gin.H{
+			c.JSON(http.StatusBadRequest, gin.H{
 				"message": "none exist user",
 				"error": true,
 			})
 		} else {
 			if user.Password != json.Password {
-				c.JSON(400, gin.H{
+				c.JSON(http.StatusBadRequest, gin.H{
 					"message": "wrong password",
 					"error": true,
 				})
@@ -74,7 +78,7 @@ func Member(c *gin.Context){
 				})
 			} else {
 				if err := db.Where("username = ?", adduser.Username).First(&adduser).Error; err == nil {
-					c.JSON(400, gin.H{
+					c.JSON(http.StatusBadRequest, gin.H{
 						"message": "duplicate username",
 						"error":   true,
 					})
@@ -152,6 +156,43 @@ func PersonDataApi(c *gin.Context) {
 	}
 }
 
+func ChangePassword(c *gin.Context) {
+	session := sessions.Default(c)
+	sess := session.Get("email")
+	json := &UserData{}
+	jsonErr := c.BindJSON(json)
+	if jsonErr != nil {
+		return
+	}
+	if sess != nil {
+		if json.ConfirmPassword != json.Password {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": true,
+				"message": "password and confirm_password not same",
+			})
+			return
+		}
+
+		if err := db.Model(&user).Where("email = ?", sess).Update("password", json.Password).Error; err != nil {
+			log.Fatalln("Error happening on ChangePassword function : ", err)
+		}
+
+		if user.Id == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "none exist user",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"ok": true,
+		})
+	} else {
+		location := url.URL{Path: "/"}
+		c.Redirect(http.StatusFound, location.RequestURI())
+	}
+}
+
 func ChangeBio(c *gin.Context) {
 	session := sessions.Default(c)
 	sess := session.Get("email")
@@ -167,7 +208,7 @@ func ChangeBio(c *gin.Context) {
 		}
 
 		if user.Id == 0 {
-			c.JSON(400, gin.H{
+			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "none exist user",
 			})
 			return
@@ -193,11 +234,14 @@ func ChangeUsername(c *gin.Context) {
 	}
 	if sess != nil {
 		if err := db.Model(&user).Where("email = ?", sess).Update("username", json.Username).Error; err != nil {
-			log.Fatalln("Error happening on ChangeLocation function : ", err)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "username already be taken, change another one",
+			})
+			return
 		}
 
 		if user.Id == 0 {
-			c.JSON(400, gin.H{
+			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "none exist user",
 			})
 			return
@@ -226,7 +270,7 @@ func ChangeLocation(c *gin.Context) {
 		}
 
 		if user.Id == 0 {
-			c.JSON(400, gin.H{
+			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "none exist user",
 			})
 			return
@@ -263,4 +307,58 @@ func DeleteAccount(c *gin.Context) {
 		location := url.URL{Path: "/"}
 		c.Redirect(http.StatusFound, location.RequestURI())
 	}
+}
+
+func UploadProfileImage(c *gin.Context) {
+	session := sessions.Default(c)
+	sess := session.Get("email")
+	if sess != nil {
+		db.Where("email = ?", sess).First(&user)
+		if user.Id == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error" : "none exist user",
+			})
+			return
+		}
+		file, err := c.FormFile("file")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err,
+			})
+		}
+		extension := filepath.Ext(file.Filename)
+		randomHex, err := util.RandomHex(8)
+		fmt.Println(randomHex)
+		if err != nil {
+			fmt.Println("Hexing error", err)
+		}
+		cleanFn := randomHex + extension
+
+		if err := c.SaveUploadedFile(file, "static/profile_pics/" + cleanFn); err != nil {
+			fmt.Println("Saving image into local directory error : ", err)
+		}
+		// 尚未連接將檔案上傳至s3，但先將CDN路徑跟檔案名稱合併
+		user.ProfileImage = "https://dkn8b9qqzonkk.cloudfront.net/profile_pics/" + cleanFn
+
+		db.Save(&user)
+		c.JSON(http.StatusOK, gin.H{
+			"ok": true,
+			"message": cleanFn,
+		})
+	} else {
+		location := url.URL{Path: "/"}
+		c.Redirect(http.StatusFound, location.RequestURI())
+	}
+}
+
+func UploadPublicImage(c *gin.Context) {
+
+}
+
+func DeletePublicImage(c *gin.Context) {
+
+}
+
+func PersonalPhotoId(c *gin.Context) {
+
 }
